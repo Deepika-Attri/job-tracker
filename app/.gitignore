@@ -1,0 +1,18 @@
+# Secrets and machine-specific files
+local.properties
+
+# Build output
+*.iml
+.gradle/
+build/
+captures/
+.externalNativeBuild/
+.cxx/
+
+# IDE
+.idea/
+.DS_Store
+
+# Signing keys
+*.jks
+*.keystore
