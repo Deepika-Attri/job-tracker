@@ -25,12 +25,16 @@ class JobDetailViewModel @Inject constructor(
     val job: StateFlow<Job?> = repository.observeJob(jobId)
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
 
-    // Change only the status, keep everything else
+    // Changing status. If the job was only Saved and is now moving forward,
+    // the date becomes today (the day you actually applied).
     fun updateStatus(status: JobStatus) {
         val current = job.value ?: return
-        viewModelScope.launch { repository.save(current.copy(status = status)) }
+        val newDate = if (current.status == JobStatus.SAVED && status != JobStatus.SAVED)
+            System.currentTimeMillis() else current.dateApplied
+        viewModelScope.launch {
+            repository.save(current.copy(status = status, dateApplied = newDate))
+        }
     }
-
     fun delete(onDone: () -> Unit) {
         val current = job.value ?: return
         viewModelScope.launch {

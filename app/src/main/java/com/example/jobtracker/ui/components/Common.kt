@@ -1,5 +1,10 @@
 package com.example.jobtracker.ui.components
 
+import android.content.ActivityNotFoundException
+import android.content.Context
+import android.content.Intent
+import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
@@ -59,3 +64,12 @@ fun StatusSelector(selected: JobStatus, onSelected: (JobStatus) -> Unit) {
 // Milliseconds -> "20 Oct 2026"
 fun formatDate(millis: Long): String =
     SimpleDateFormat("dd MMM yyyy", Locale.getDefault()).format(Date(millis))
+
+// Opens a link in the browser, or shows a message if no browser exists
+fun openLink(context: Context, url: String) {
+    try {
+        context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)))
+    } catch (e: ActivityNotFoundException) {
+        Toast.makeText(context, "No browser found on this device", Toast.LENGTH_LONG).show()
+    }
+}

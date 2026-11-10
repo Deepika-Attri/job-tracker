@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalUriHandler
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.example.jobtracker.data.JobStatus
 import com.example.jobtracker.ui.components.StatusChip
 import com.example.jobtracker.ui.components.StatusSelector
 import com.example.jobtracker.ui.components.formatDate
@@ -77,7 +78,8 @@ fun JobDetailScreen(
                 Text(current.company, style = MaterialTheme.typography.headlineMedium)
                 Text(current.role, style = MaterialTheme.typography.titleMedium)
                 StatusChip(current.status)
-                Text("Applied on ${formatDate(current.dateApplied)}")
+                val dateLabel = if (current.status == JobStatus.SAVED) "Saved on" else "Applied on"
+                Text("$dateLabel ${formatDate(current.dateApplied)}")
 
                 // Open the link in the browser (ignore bad links instead of crashing)
                 if (current.link.isNotBlank()) {

@@ -31,6 +31,8 @@ class EditJobViewModel @Inject constructor(
 
     private var dateApplied = System.currentTimeMillis()
 
+    private var originalStatus: JobStatus? = null
+
     // Link is optional. If filled, it must look like a real web address.
     val isLinkValid: Boolean
         get() = link.isBlank() || Patterns.WEB_URL.matcher(normalizeLink(link)).matches()
@@ -58,6 +60,7 @@ class EditJobViewModel @Inject constructor(
                     notes = job.notes
                     status = job.status
                     dateApplied = job.dateApplied
+                    originalStatus = job.status
                 }
             }
         }
@@ -73,7 +76,8 @@ class EditJobViewModel @Inject constructor(
                     role = role.trim(),
                     link = normalizeLink(link), // saved with https:// added
                     status = status,
-                    dateApplied = dateApplied,
+                    dateApplied = if (originalStatus == JobStatus.SAVED && status != JobStatus.SAVED)
+                        System.currentTimeMillis() else dateApplied,
                     notes = notes.trim()
                 )
             )
