@@ -1,6 +1,5 @@
 package com.example.jobtracker.ui.edit
 
-import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -10,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.jobtracker.data.Job
 import com.example.jobtracker.data.JobRepository
 import com.example.jobtracker.data.JobStatus
+import com.example.jobtracker.util.LinkUtils
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -34,8 +34,11 @@ class EditJobViewModel @Inject constructor(
     private var originalStatus: JobStatus? = null
 
     // Link is optional. If filled, it must look like a real web address.
+//    val isLinkValid: Boolean
+//        get() = link.isBlank() || Patterns.WEB_URL.matcher(normalizeLink(link)).matches()
+
     val isLinkValid: Boolean
-        get() = link.isBlank() || Patterns.WEB_URL.matcher(normalizeLink(link)).matches()
+        get() = LinkUtils.isValid(link)
 
     // Save is allowed only when required fields are filled and the link is valid
     val canSave: Boolean
@@ -74,7 +77,8 @@ class EditJobViewModel @Inject constructor(
                     id = if (isEditing) jobId else 0,
                     company = company.trim(),
                     role = role.trim(),
-                    link = normalizeLink(link), // saved with https:// added
+                    link = LinkUtils.normalize(link),
+//                    link = normalizeLink(link), // saved with https:// added
                     status = status,
                     dateApplied = if (originalStatus == JobStatus.SAVED && status != JobStatus.SAVED)
                         System.currentTimeMillis() else dateApplied,

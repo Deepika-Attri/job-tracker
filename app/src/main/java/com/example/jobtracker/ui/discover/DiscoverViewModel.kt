@@ -28,6 +28,7 @@ import kotlinx.coroutines.launch
 import retrofit2.HttpException
 import java.io.IOException
 import javax.inject.Inject
+import kotlin.time.Duration.Companion.milliseconds
 
 // The three things the screen can show
 sealed interface DiscoverUiState {
@@ -95,17 +96,16 @@ class DiscoverViewModel @Inject constructor(
     // ---------- Step 2: search text, waits 300 ms after the last keystroke ----------
 
     private val debouncedSearch: Flow<String> = _searchText
-        .debounce(300)
+        .debounce(300.milliseconds)
         .onStart { emit(_searchText.value) }   // first value shows immediately
         .distinctUntilChanged()
 
     // ---------- Step 3: combine everything into one screen state ----------
-
     val uiState: StateFlow<DiscoverUiState> =
         combine(downloaded, debouncedSearch, _remoteOnly) { downloadState, search, remote ->
             if (downloadState is DiscoverUiState.Success) {
                 DiscoverUiState.Success(
-                    jobs = downloadState.jobs.filter { matches(it, search, remote) },
+                    jobs = downloadState.jobs.filter { matchesFilters(it, search, remote) },
                     totalCount = downloadState.totalCount      // total downloaded, before filtering
                 )
             } else {
@@ -157,23 +157,30 @@ class DiscoverViewModel @Inject constructor(
     }
 
     // ---------- Helpers ----------
-
     private fun sendRequest(isPull: Boolean) {
         downloadRequest.value = DownloadRequest(_visaOnly.value, isPull, ++requestCounter)
     }
 
     // Every word typed must appear somewhere in title, company, location or tags
-    private fun matches(job: DiscoverJob, query: String, remoteOnly: Boolean): Boolean {
-        if (remoteOnly && !job.remote) return false
-        val words = query.trim().split(" ").filter { it.isNotBlank() }
-        if (words.isEmpty()) return true
-        val text = "${job.title} ${job.company} ${job.location} ${job.tags.joinToString(" ")}"
-        return words.all { text.contains(it, ignoreCase = true) }
-    }
+//    private fun matches(job: DiscoverJob, query: String, remoteOnly: Boolean): Boolean {
+//        if (remoteOnly && !job.remote) return false
+//        val words = query.trim().split(" ").filter { it.isNotBlank() }
+//        if (words.isEmpty()) return true
+//        val text = "${job.title} ${job.company} ${job.location} ${job.tags.joinToString(" ")}"
+//        return words.all { text.contains(it, ignoreCase = true) }
+//    }
 
     private fun friendlyMessage(e: Exception): String = when (e) {
         is IOException -> "No internet connection. Check your network and try again."
         is HttpException -> "The jobs server had a problem (code ${e.code()}). Try again later."
         else -> "Something went wrong while loading jobs."
     }
+}
+
+internal fun matchesFilters(job: DiscoverJob, query: String, remoteOnly: Boolean): Boolean {
+    if (remoteOnly && !job.remote) return false
+    val words = query.trim().split(" ").filter { it.isNotBlank() }
+    if (words.isEmpty()) return true
+    val text = "${job.title} ${job.company} ${job.location} ${job.tags.joinToString(" ")}"
+    return words.all { text.contains(it, ignoreCase = true) }
 }

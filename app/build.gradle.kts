@@ -38,6 +38,9 @@ android {
     buildFeatures {
         compose = true
     }
+    testOptions {
+        unitTests.isReturnDefaultValues = true   // android stubs return defaults instead of crashing
+    }
 }
 
 dependencies {
@@ -76,4 +79,8 @@ dependencies {
     implementation(libs.retrofit.kotlinx.serialization)   // turns JSON into Kotlin objects
     implementation(libs.kotlinx.serialization.json)
     implementation(libs.okhttp.logging)                   // prints requests in Logcat for debugging
+
+    testImplementation(libs.mockk)
+    testImplementation(libs.kotlinx.coroutines.test)
+    testImplementation(libs.turbine)
 }
